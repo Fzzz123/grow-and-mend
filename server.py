@@ -2,7 +2,7 @@
 Run:  python server.py   ->  http://localhost:8000
 No third-party packages needed.
 """
-import base64, io, json, os, re, time, urllib.request, uuid, zipfile
+import base64, io, json, os, re, threading, time, urllib.request, uuid, zipfile
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -11,6 +11,8 @@ ADMIN_KEY = os.environ.get("ADMIN_KEY", "")
 SB_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 SB_KEY = os.environ.get("SUPABASE_KEY", "")
 BUCKET = "designs"
+NOTIFY_URL = os.environ.get("NOTIFY_URL", "")
+NOTIFY_SECRET = os.environ.get("NOTIFY_SECRET", "")
 os.makedirs(SUB, exist_ok=True)
 MAX_BYTES = 3_000_000
 PREFIX = "data:image/png;base64,"
@@ -52,6 +54,18 @@ def store(sid, png, meta):
         fh.write(png)
     with open(os.path.join(SUB, sid + ".json"), "w", encoding="utf-8") as fh:
         json.dump(meta, fh, ensure_ascii=False)
+
+
+def notify(meta, png):
+    """Forward a submission to the Google Apps Script (email + Drive + Sheet). Best effort."""
+    try:
+        body = json.dumps({**meta, "secret": NOTIFY_SECRET,
+                           "image_b64": base64.b64encode(png).decode()}).encode()
+        req = urllib.request.Request(NOTIFY_URL, data=body, method="POST",
+                                     headers={"Content-Type": "text/plain"})
+        urllib.request.urlopen(req, timeout=30).read()
+    except Exception as e:
+        print("notify failed:", e)
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -105,7 +119,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
             return
-        if self.path.split("?")[0].startswith(("/server.py", "/render.yaml", "/.")):
+        if self.path.split("?")[0].startswith(("/server.py", "/render.yaml", "/apps_script.gs", "/supabase_setup.sql", "/.")):
             return self.send_error(404)
         return super().do_GET()
 
@@ -135,6 +149,8 @@ class Handler(SimpleHTTPRequestHandler):
             store(sid, png, meta)
         except Exception:
             return self._json(502, {"error": "storage unavailable"})
+        if NOTIFY_URL:
+            threading.Thread(target=notify, args=(meta, png), daemon=True).start()
         self._json(200, {"ok": True})
 
 
