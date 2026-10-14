@@ -27,7 +27,7 @@ fetch('/api/submissions').then(r=>r.json()).then(list=>{
   g.innerHTML='';
   list.forEach(s=>{
     const f=document.createElement('figure');
-    const img=document.createElement('img'); img.src='/submissions/'+s.file; img.loading='lazy';
+    const img=document.createElement('img'); img.src=s.url; img.loading='lazy';
     const c=document.createElement('figcaption');
     const tag=document.createElement('span'); tag.className='tag '+s.mode; tag.textContent=s.mode==='green'?'Green space':'Upcycled fashion';
     c.append(tag,' ',document.createTextNode((s.name||'Anonymous')+(s.note?' — '+s.note:'')));

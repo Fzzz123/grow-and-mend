@@ -2,15 +2,56 @@
 Run:  python server.py   ->  http://localhost:8000
 No third-party packages needed.
 """
-import base64, io, json, os, re, time, uuid, zipfile
+import base64, io, json, os, re, time, urllib.request, uuid, zipfile
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SUB = os.environ.get("DATA_DIR", os.path.join(ROOT, "submissions"))
 ADMIN_KEY = os.environ.get("ADMIN_KEY", "")
+SB_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
+SB_KEY = os.environ.get("SUPABASE_KEY", "")
+BUCKET = "designs"
 os.makedirs(SUB, exist_ok=True)
 MAX_BYTES = 3_000_000
 PREFIX = "data:image/png;base64,"
+
+
+def sb(method, path, body=None, ctype="application/json"):
+    """Call Supabase REST/Storage with the server-side secret key."""
+    h = {"apikey": SB_KEY, "Content-Type": ctype}
+    if SB_KEY.startswith("eyJ"):
+        h["Authorization"] = "Bearer " + SB_KEY
+    req = urllib.request.Request(SB_URL + path, data=body, method=method, headers=h)
+    with urllib.request.urlopen(req, timeout=20) as r:
+        return r.read()
+
+
+def list_items():
+    if SB_URL:
+        rows = json.loads(sb("GET", "/rest/v1/submissions?select=*&order=time.desc&limit=300"))
+        for r in rows:
+            r["url"] = f"{SB_URL}/storage/v1/object/public/{BUCKET}/{r['file']}"
+        return rows
+    items = []
+    for f in os.listdir(SUB):
+        if f.endswith(".json"):
+            with open(os.path.join(SUB, f), encoding="utf-8") as fh:
+                m = json.load(fh)
+            m["url"] = "/submissions/" + m["file"]
+            items.append(m)
+    items.sort(key=lambda m: m["time"], reverse=True)
+    return items
+
+
+def store(sid, png, meta):
+    if SB_URL:
+        sb("POST", f"/storage/v1/object/{BUCKET}/{sid}.png", png, "image/png")
+        sb("POST", "/rest/v1/submissions", json.dumps(meta).encode())
+        return
+    with open(os.path.join(SUB, sid + ".png"), "wb") as fh:
+        fh.write(png)
+    with open(os.path.join(SUB, sid + ".json"), "w", encoding="utf-8") as fh:
+        json.dump(meta, fh, ensure_ascii=False)
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -41,20 +82,21 @@ class Handler(SimpleHTTPRequestHandler):
         if self.path.startswith("/submissions/"):
             return super().do_GET() if os.path.dirname(SUB) == ROOT else self._serve_sub()
         if self.path == "/api/submissions":
-            items = []
-            for f in os.listdir(SUB):
-                if f.endswith(".json"):
-                    with open(os.path.join(SUB, f), encoding="utf-8") as fh:
-                        items.append(json.load(fh))
-            items.sort(key=lambda s: s["time"], reverse=True)
-            return self._json(200, items)
+            try:
+                return self._json(200, list_items())
+            except Exception:
+                return self._json(502, {"error": "storage unavailable"})
         if self.path.startswith("/api/export"):
             if not ADMIN_KEY or self.path != "/api/export?key=" + ADMIN_KEY:
                 return self.send_error(403)
             buf = io.BytesIO()
             with zipfile.ZipFile(buf, "w") as z:
-                for f in os.listdir(SUB):
-                    z.write(os.path.join(SUB, f), f)
+                for m in list_items():
+                    z.writestr(m["file"].replace(".png", ".json"), json.dumps(m, ensure_ascii=False))
+                    if SB_URL:
+                        z.writestr(m["file"], urllib.request.urlopen(m["url"], timeout=20).read())
+                    else:
+                        z.write(os.path.join(SUB, m["file"]), m["file"])
             body = buf.getvalue()
             self.send_response(200)
             self.send_header("Content-Type", "application/zip")
@@ -82,8 +124,6 @@ class Handler(SimpleHTTPRequestHandler):
         except Exception:
             return self._json(400, {"error": "bad request"})
         sid = f"{int(time.time())}-{uuid.uuid4().hex[:6]}"
-        with open(os.path.join(SUB, sid + ".png"), "wb") as fh:
-            fh.write(png)
         meta = {
             "file": sid + ".png",
             "time": time.time(),
@@ -91,8 +131,10 @@ class Handler(SimpleHTTPRequestHandler):
             "name": re.sub(r"[\r\n]", " ", str(d.get("name", "")))[:40],
             "note": re.sub(r"[\r\n]", " ", str(d.get("note", "")))[:300],
         }
-        with open(os.path.join(SUB, sid + ".json"), "w", encoding="utf-8") as fh:
-            json.dump(meta, fh, ensure_ascii=False)
+        try:
+            store(sid, png, meta)
+        except Exception:
+            return self._json(502, {"error": "storage unavailable"})
         self._json(200, {"ok": True})
 
 
