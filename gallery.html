@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gallery — Grow &amp; Mend</title>
+<title>[ Gallery page title ]</title>
 <style>
   body { margin:0; font-family:Georgia,serif; background:#f7f3e8; color:#23312a; }
   h1 { text-align:center; color:#2f6b3f; padding:30px 10px 0; margin:0; }
@@ -17,23 +17,23 @@
 </style>
 </head>
 <body>
-<h1>Community gallery</h1>
-<p class="sub"><a href="index.html">← Back to the studio</a></p>
-<div class="grid" id="grid">Loading…</div>
+<h1>[ Gallery title ]</h1>
+<p class="sub"><a href="index.html">[ Back link text ]</a></p>
+<div class="grid" id="grid">[ Loading ]</div>
 <script>
 fetch('/api/submissions').then(r=>r.json()).then(list=>{
   const g=document.getElementById('grid');
-  if(!list.length){ g.textContent='No designs yet. Be the first!'; return; }
+  if(!list.length){ g.textContent='[ Empty gallery text ]'; return; }
   g.innerHTML='';
   list.forEach(s=>{
     const f=document.createElement('figure');
     const img=document.createElement('img'); img.src=s.url; img.loading='lazy';
     const c=document.createElement('figcaption');
-    const tag=document.createElement('span'); tag.className='tag '+s.mode; tag.textContent=s.mode==='green'?'Green space':'Upcycled fashion';
-    c.append(tag,' ',document.createTextNode((s.name||'Anonymous')+(s.note?' — '+s.note:'')));
+    const tag=document.createElement('span'); tag.className='tag '+s.mode; tag.textContent=s.mode==='green'?'[ Tab 1 name ]':'[ Tab 2 name ]';
+    c.append(tag,' ',document.createTextNode((s.name||'[ Anonymous ]')+(s.note?' — '+s.note:'')));
     f.append(img,c); g.append(f);
   });
-}).catch(()=>{ document.getElementById('grid').textContent='Gallery needs the server running.'; });
+}).catch(()=>{ document.getElementById('grid').textContent='[ Gallery error text ]'; });
 </script>
 </body>
 </html>

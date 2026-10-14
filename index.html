@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Grow &amp; Mend — Design a Greener World</title>
+<title>[ Page title ]</title>
 <style>
   :root { --green:#2f6b3f; --leaf:#7fb069; --cream:#f7f3e8; --ink:#23312a; --clay:#d98e5f; }
   * { box-sizing:border-box; }
@@ -22,8 +22,19 @@
   .tabs button, .tools button { font:inherit; border:2px solid var(--green); background:#fff; color:var(--green); border-radius:999px; padding:6px 16px; cursor:pointer; }
   .tabs button.active, .tools button.active { background:var(--green); color:#fff; }
   .tools { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
-  .swatch { width:28px; height:28px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 0 1px #aaa; cursor:pointer; }
-  .swatch.active { box-shadow:0 0 0 3px var(--green); }
+  .palette { background:#faf8f1; border:1px solid #e4dfcf; border-radius:12px; padding:10px 12px; margin-bottom:12px; display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start; }
+  .prow { display:flex; align-items:center; gap:8px; margin:3px 0; }
+  .prow .lab { width:84px; font-size:.78rem; color:#6b776f; text-align:right; }
+  .chips { display:flex; gap:4px; flex-wrap:wrap; }
+  .swatch { width:24px; height:24px; border-radius:6px; border:1px solid rgba(0,0,0,.18); cursor:pointer; transition:transform .08s; }
+  .swatch:hover { transform:scale(1.18); }
+  .swatch.active { outline:3px solid var(--green); outline-offset:1px; }
+  .custom { display:flex; flex-direction:column; gap:8px; align-items:center; min-width:130px; }
+  .current { width:64px; height:64px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 0 1px #aaa; }
+  .custom input[type=color] { width:64px; height:30px; padding:0; border:1px solid #bbb; border-radius:6px; background:none; cursor:pointer; }
+  .custom .hex { font:12px monospace; color:#555; }
+  .brushprev { width:100%; height:48px; border:1px solid #e4dfcf; border-radius:8px; background:#fff; display:flex; align-items:center; justify-content:center; }
+  .brushprev i { display:block; border-radius:50%; }
   .stage { position:relative; }
   canvas { width:100%; max-width:900px; aspect-ratio:3/2; border:2px dashed var(--leaf); border-radius:12px; background:#fff; touch-action:none; cursor:crosshair; display:block; }
   .prompt { background:#eef5e7; border-left:5px solid var(--leaf); padding:10px 14px; border-radius:8px; margin-bottom:12px; }
@@ -40,45 +51,54 @@
 <body>
 
 <header class="hero">
-  <h1>🌱 Grow &amp; Mend</h1>
-  <p>Design a green space for your city, or restyle old clothes into something new. Then see how your idea helps the planet.</p>
+  <h1>[ Project title ]</h1>
+  <p>[ One or two sentences: what can people do here, and why does it matter? ]</p>
 </header>
 
 <section>
-  <h2>Why it matters</h2>
+  <h2>[ Section title: why it matters ]</h2>
   <div class="cards">
-    <div class="card"><div class="big">Cooler cities</div>Trees and parks cut the "urban heat island" effect, and soak up rain that would otherwise flood streets.<br><small>Source to add: e.g. EPA / UN-Habitat</small></div>
-    <div class="card"><div class="big">2–8%</div>Estimated share of global greenhouse emissions from the fashion industry (estimates vary by study).<br><small>Source to add: UNEP</small></div>
-    <div class="card"><div class="big">Reuse &gt; recycle</div>Mending, remaking and upcycling keeps clothes out of landfill and avoids the footprint of making new ones.<br><small>Source to add: Ellen MacArthur Foundation</small></div>
-    <div class="card"><div class="big">Light websites</div>The internet has a carbon footprint too. This page is deliberately small: no big images, no trackers.<br><small>Source to add: Website Carbon / Green Web Foundation</small></div>
+    <div class="card"><div class="big">[ Key fact ]</div>[ Explain it in one sentence ]<br><small>[ Source ]</small></div>
+    <div class="card"><div class="big">[ Key fact ]</div>[ Explain it in one sentence ]<br><small>[ Source ]</small></div>
+    <div class="card"><div class="big">[ Key fact ]</div>[ Explain it in one sentence ]<br><small>[ Source ]</small></div>
+    <div class="card"><div class="big">[ Key fact ]</div>[ Explain it in one sentence ]<br><small>[ Source ]</small></div>
   </div>
 </section>
 
 <section>
-  <h2>Design studio</h2>
+  <h2>[ Section title: the drawing board ]</h2>
   <div class="studio">
     <div class="tabs">
-      <button class="active" data-mode="green">🌳 Green space</button>
-      <button data-mode="fashion">👕 Upcycled fashion</button>
+      <button class="active" data-mode="green">[ Tab 1 name ]</button>
+      <button data-mode="fashion">[ Tab 2 name ]</button>
     </div>
     <div class="prompt" id="prompt"></div>
 
+    <div class="palette" id="palette">
+      <div id="rows"></div>
+      <div class="custom">
+        <div class="current" id="current"></div>
+        <input type="color" id="picker" value="#2f6b3f" title="[ Custom colour ]">
+        <div class="hex" id="hex">#2f6b3f</div>
+        <div class="brushprev"><i id="dot"></i></div>
+      </div>
+    </div>
+
     <div class="tools">
-      <span id="colors"></span>
-      <button data-tool="brush" class="active">Brush</button>
-      <button data-tool="eraser">Eraser</button>
-      <label>Size <input type="range" id="size" min="2" max="40" value="8"></label>
+      <button data-tool="brush" class="active">[ Brush ]</button>
+      <button data-tool="eraser">[ Eraser ]</button>
+      <label>[ Size ] <input type="range" id="size" min="2" max="40" value="8"></label>
       <span id="stamps"></span>
-      <button id="undo">Undo</button>
-      <button id="clear">Clear</button>
+      <button id="undo">[ Undo ]</button>
+      <button id="clear">[ Clear ]</button>
     </div>
 
     <div class="stage"><canvas id="board" width="900" height="600"></canvas></div>
 
     <form class="submit" id="form">
-      <input type="text" id="name" placeholder="Your name or nickname (optional)" maxlength="40">
-      <textarea id="note" rows="2" placeholder="Tell us about your design (optional)" maxlength="300"></textarea>
-      <button class="primary" id="send" type="submit">Submit my design</button>
+      <input type="text" id="name" placeholder="[ Hint: name / nickname field ]" maxlength="40">
+      <textarea id="note" rows="2" placeholder="[ Hint: what should people write about their design? ]" maxlength="300"></textarea>
+      <button class="primary" id="send" type="submit">[ Submit button text ]</button>
       <div id="msg"></div>
     </form>
 
@@ -87,31 +107,48 @@
 </section>
 
 <footer>
-  Made by students, with care. Drawings you submit are shown on the <a href="gallery.html">gallery</a>.
+  [ Credits: team / class / year ] · <a href="gallery.html">[ Link text: see the gallery ]</a>
 </footer>
 
 <script>
 const $ = s => document.querySelector(s);
 const canvas = $('#board'), ctx = canvas.getContext('2d');
-const COLORS = ['#2f6b3f','#7fb069','#a7c957','#8b5a2b','#d98e5f','#e9c46a','#e76f51','#457b9d','#9b5de5','#23312a'];
+const GROUPS = [
+  ['[ Greens ]',   ['#1b4332','#2d6a4f','#40916c','#52b788','#74c69d','#95d5b2','#b7e4c7','#d8f3dc']],
+  ['[ Earth ]',    ['#3e2723','#5d4037','#8b5a2b','#a1887f','#c9a27e','#e0c9a6','#f1e4cc','#6b705c']],
+  ['[ Warm ]',     ['#7f1d1d','#c0392b','#e76f51','#f4a261','#e9c46a','#f6bd60','#ffd6a5','#fde2e4']],
+  ['[ Cool ]',     ['#1d3557','#457b9d','#6aaed6','#a8dadc','#5e548e','#9b5de5','#c77dff','#e0aaff']],
+  ['[ Neutrals ]', ['#000000','#23312a','#555555','#888888','#bbbbbb','#dddddd','#f5f5f5','#ffffff']],
+];
+let recent = [];
 const STAMPS = { green:['🌳','🌷','🪴','🦋','🐝','⛲','🪑'], fashion:['🧵','🪡','🧶','🌸','🩹','🔘','✂️'] };
 const PROMPTS = {
-  green:'Draw a green space for your neighbourhood: a pocket park, rooftop garden, or school yard. Add trees, plants and places for people and wildlife.',
-  fashion:'Redesign an old piece of clothing: patch it, dye it, add pockets, or turn it into something new. Show what you would reuse.'
+  green:'[ Prompt for tab 1: tell people what to draw and give 1-2 ideas, e.g. what to include, who it is for ]',
+  fashion:'[ Prompt for tab 2: tell people what to draw and give 1-2 ideas, e.g. what to reuse, what to change ]'
 };
+// Shown after a successful submit. Write it as a guide: thanks + what to do next.
 const LEARN = {
-  green:'🌳 Nice! Plants and trees shade surfaces, cool the air and absorb rain. Pollinator-friendly flowers like the ones you drew also support bees and butterflies.',
-  fashion:'🧵 Nice! Every garment you keep wearing, mend or remake means one fewer new one to produce, and less textile waste in landfill.'
+  green:'[ After-submit guide for tab 1: say thanks, explain the impact of their design, then point to a next step (view the gallery, share the link, try the other tab) ]',
+  fashion:'[ After-submit guide for tab 2: say thanks, explain the impact of their design, then point to a next step (view the gallery, share the link, try the other tab) ]'
 };
-let mode='green', tool='brush', color=COLORS[0], stamp=null, drawing=false, last=null, history=[];
+let mode='green', tool='brush', color='#2f6b3f', stamp=null, drawing=false, last=null, history=[];
 
 function reset(){ ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height); history=[]; save(); }
 function save(){ history.push(ctx.getImageData(0,0,canvas.width,canvas.height)); if(history.length>30) history.shift(); }
 function buildUI(){
   $('#prompt').textContent = PROMPTS[mode];
-  $('#colors').innerHTML = COLORS.map(c=>`<span class="swatch ${c===color&&!stamp?'active':''}" data-c="${c}" style="background:${c}"></span>`).join(' ');
+  const chip = c => `<span class="swatch ${c===color&&!stamp?'active':''}" data-c="${c}" style="background:${c}" title="${c}"></span>`;
+  const rows = GROUPS.map(([n,cs]) => `<div class="prow"><span class="lab">${n}</span><span class="chips">${cs.map(chip).join('')}</span></div>`);
+  if(recent.length) rows.push(`<div class="prow"><span class="lab">[ Recent ]</span><span class="chips">${recent.map(chip).join('')}</span></div>`);
+  $('#rows').innerHTML = rows.join('');
+  $('#current').style.background = color; $('#hex').textContent = color; $('#picker').value = color;
+  const d = $('#dot'), sz = +$('#size').value; d.style.width = d.style.height = sz + 'px'; d.style.background = tool==='eraser' ? '#ddd' : color;
   $('#stamps').innerHTML = STAMPS[mode].map(s=>`<button data-s="${s}" class="${stamp===s?'active':''}">${s}</button>`).join(' ');
 }
+function setColor(c){ color=c.toLowerCase(); recent=[color,...recent.filter(x=>x!==color)].slice(0,8); }
+$('#picker').addEventListener('input', e=>{ color=e.target.value; stamp=null; tool='brush'; document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool==='brush')); buildUI(); });
+$('#picker').addEventListener('change', e=>{ setColor(e.target.value); buildUI(); });
+$('#size').addEventListener('input', buildUI);
 function pos(e){ const r=canvas.getBoundingClientRect(); return { x:(e.clientX-r.left)*canvas.width/r.width, y:(e.clientY-r.top)*canvas.height/r.height }; }
 
 canvas.addEventListener('pointerdown', e=>{
@@ -130,12 +167,12 @@ canvas.addEventListener('pointermove', e=>{
 document.addEventListener('click', e=>{
   const t=e.target;
   if(t.dataset.mode){ mode=t.dataset.mode; stamp=null; document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b===t)); buildUI(); }
-  else if(t.dataset.c){ color=t.dataset.c; stamp=null; tool='brush'; document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool==='brush')); buildUI(); }
+  else if(t.dataset.c){ setColor(t.dataset.c); stamp=null; tool='brush'; document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool==='brush')); buildUI(); }
   else if(t.dataset.s){ stamp = stamp===t.dataset.s ? null : t.dataset.s; buildUI(); }
   else if(t.dataset.tool){ tool=t.dataset.tool; stamp=null; document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('active',b===t)); buildUI(); }
 });
 $('#undo').onclick=()=>{ if(history.length>1){ history.pop(); ctx.putImageData(history[history.length-1],0,0); } };
-$('#clear').onclick=()=>{ if(confirm('Clear the whole drawing?')) reset(); };
+$('#clear').onclick=()=>{ if(confirm('[ Clear confirmation question ]')) reset(); };
 
 $('#form').addEventListener('submit', async e=>{
   e.preventDefault();
@@ -144,10 +181,10 @@ $('#form').addEventListener('submit', async e=>{
   try{
     const r=await fetch('/api/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     if(!r.ok) throw new Error(r.status);
-    msg.textContent='✅ Thank you! Your design was submitted.';
+    msg.textContent='✅ [ Short confirmation, e.g. design received ]';
     $('#learn').style.display='block'; $('#learn').textContent=LEARN[mode];
   }catch(err){
-    msg.innerHTML='⚠️ Could not reach the server. <a href="'+payload.image+'" download="my-design.png">Download your design instead</a>.';
+    msg.innerHTML='⚠️ [ Error text: could not send ] <a href="'+payload.image+'" download="my-design.png">[ Download link text ]</a>';
   }
   btn.disabled=false;
 });
