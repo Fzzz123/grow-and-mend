@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: grow-and-mend
+    runtime: python
+    plan: free
+    buildCommand: "echo no build"
+    startCommand: python server.py
+    envVars:
+      - key: ADMIN_KEY
+        generateValue: true
